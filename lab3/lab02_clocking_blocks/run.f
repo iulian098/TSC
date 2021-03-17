@@ -1,4 +1,3 @@
-
 //
 // Invocation options
 //
@@ -13,6 +12,6 @@
 //
 // Files that require modification in this lab
 //
-tb_ifc_solution.sv
-instr_register_test_solution.sv
-top_solution.sv
+tb_ifc.sv
+instr_register_test.sv
+top.sv

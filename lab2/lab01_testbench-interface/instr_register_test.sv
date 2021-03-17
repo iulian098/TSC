@@ -5,18 +5,7 @@
  * a scoreboard for self-verification.
  **********************************************************************/
 
-module instr_register_test
-  import instr_register_pkg::*;  // user-defined types are defined in instr_register_pkg.sv
-  (input  logic          clk,
-   output logic          load_en,
-   output logic          reset_n,
-   output operand_t      operand_a,
-   output operand_t      operand_b,
-   output opcode_t       opcode,
-   output address_t      write_pointer,
-   output address_t      read_pointer,
-   input  instruction_t  instruction_word
-  );
+module instr_register_test (tb_ifc intf);  // interface port
 
   timeunit 1ns/1ns;
 
@@ -30,20 +19,20 @@ module instr_register_test
     $display(    "***********************************************************");
 
     $display("\nReseting the instruction register...");
-    write_pointer  = 5'h00;         // initialize write pointer
-    read_pointer   = 5'h1F;         // initialize read pointer
-    load_en        = 1'b0;          // initialize load control line
-    reset_n       <= 1'b0;          // assert reset_n (active low)
-    repeat (2) @(posedge clk) ;     // hold in reset for 2 clock cycles
-    reset_n        = 1'b1;          // deassert reset_n (active low)
+    intf.write_pointer  = 5'h00;         // initialize write pointer
+    intf.read_pointer   = 5'h1F;         // initialize read pointer
+    intf.load_en        = 1'b0;          // initialize load control line
+    intf.reset_n       <= 1'b0;          // assert reset_n (active low)
+    repeat (2) @(posedge intf.clk) ;     // hold in reset for 2 clock cycles
+    intf.reset_n        = 1'b1;          // deassert reset_n (active low)
 
     $display("\nWriting values to register stack...");
-    @(posedge clk) load_en = 1'b1;  // enable writing to register
+    @(posedge intf.clk) intf.load_en = 1'b1;  // enable writing to register
     repeat (3) begin
-      @(posedge clk) randomize_transaction;
-      @(negedge clk) print_transaction;
+      @(posedge intf.clk) randomize_transaction;
+      @(negedge intf.clk) print_transaction;
     end
-    @(posedge clk) load_en = 1'b0;  // turn-off writing to register
+    @(posedge intf.clk) intf.load_en = 1'b0;  // turn-off writing to register
 
     // read back and display same three register locations
     $display("\nReading back the same register locations written...");
@@ -51,11 +40,11 @@ module instr_register_test
       // later labs will replace this loop with iterating through a
       // scoreboard to determine which addresses were written and
       // the expected values to be read back
-      @(posedge clk) read_pointer = i;
-      @(negedge clk) print_results;
+      @(posedge intf.clk) intf.read_pointer = i;
+      @(negedge intf.clk) print_results;
     end
 
-    @(posedge clk) ;
+    @(posedge intf.clk) ;
     $display("\n***********************************************************");
     $display(  "***  THIS IS NOT A SELF-CHECKING TESTBENCH (YET).  YOU  ***");
     $display(  "***  NEED TO VISUALLY VERIFY THAT THE OUTPUT VALUES     ***");
@@ -73,24 +62,24 @@ module instr_register_test
     // write_pointer values in a later lab
     //
     static int temp = 0;
-    operand_a     <= $random(seed)%16;                 // between -15 and 15
-    operand_b     <= $unsigned($random)%16;            // between 0 and 15
-    opcode        <= opcode_t'($unsigned($random)%8);  // between 0 and 7, cast to opcode_t type
-    write_pointer <= temp++;
+    intf.operand_a     <= $random(seed)%16;                 // between -15 and 15
+    intf.operand_b     <= $unsigned($random)%16;            // between 0 and 15
+    intf.opcode        <= opcode_t'($unsigned($random)%8);  // between 0 and 7, cast to opcode_t type
+    intf.write_pointer <= temp++;
   endfunction: randomize_transaction
 
   function void print_transaction;
-    $display("Writing to register location %0d: ", write_pointer);
-    $display("  opcode = %0d (%s)", opcode, opcode.name);
-    $display("  operand_a = %0d",   operand_a);
-    $display("  operand_b = %0d\n", operand_b);
+    $display("Writing to register location %0d: ", intf.write_pointer);
+    $display("  opcode = %0d (%s)", intf.opcode, intf.opcode.name);
+    $display("  operand_a = %0d",   intf.operand_a);
+    $display("  operand_b = %0d\n", intf.operand_b);
   endfunction: print_transaction
 
   function void print_results;
-    $display("Read from register location %0d: ", read_pointer);
-    $display("  opcode = %0d (%s)", instruction_word.opc, instruction_word.opc.name);
-    $display("  operand_a = %0d",   instruction_word.op_a);
-    $display("  operand_b = %0d\n", instruction_word.op_b);
+    $display("Read from register location %0d: ", intf.read_pointer);
+    $display("  opcode = %0d (%s)", intf.instruction_word.opc, intf.instruction_word.opc.name);
+    $display("  operand_a = %0d",   intf.instruction_word.op_a);
+    $display("  operand_b = %0d\n", intf.instruction_word.op_b);
   endfunction: print_results
 
 endmodule: instr_register_test

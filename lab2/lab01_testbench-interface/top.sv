@@ -12,38 +12,24 @@ module top;
   logic clk;
   logic test_clk;
 
-  // interconnecting signals
-  logic          load_en;
-  logic          reset_n;
-  opcode_t       opcode;
-  operand_t      operand_a, operand_b;
-  address_t      write_pointer, read_pointer;
-  instruction_t  instruction_word;
+tb_ifc intf(
+	.clk(test_clk)
+);
 
   // instantiate testbench and connect ports
-  instr_register_test test (
-    .clk(test_clk),
-    .load_en(load_en),
-    .reset_n(reset_n),
-    .operand_a(operand_a),
-    .operand_b(operand_b),
-    .opcode(opcode),
-    .write_pointer(write_pointer),
-    .read_pointer(read_pointer),
-    .instruction_word(instruction_word)
-   );
+  instr_register_test test (.intf(intf));
 
   // instantiate design and connect ports
   instr_register dut (
     .clk(clk),
-    .load_en(load_en),
-    .reset_n(reset_n),
-    .operand_a(operand_a),
-    .operand_b(operand_b),
-    .opcode(opcode),
-    .write_pointer(write_pointer),
-    .read_pointer(read_pointer),
-    .instruction_word(instruction_word)
+    .load_en(intf.load_en),
+    .reset_n(intf.reset_n),
+    .operand_a(intf.operand_a),
+    .operand_b(intf.operand_b),
+    .opcode(intf.opcode),
+    .write_pointer(intf.write_pointer),
+    .read_pointer(intf.read_pointer),
+    .instruction_word(intf.instruction_word)
    );
 
   // clock oscillators
