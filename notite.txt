@@ -1,0 +1,56 @@
+class transaction
+
+opcode
+op_A
+op_b
+write_pointer
+
+func:
+rand val/transaction
+print transaction
+
+class driver
+instantiate transaction name tr
+
+declar ca var: virtual tb_ifc
+
+new (tb_ifc vifc)
+vifc = new();
+
+func reset_signals(){
+    $display("\nReseting the instruction register...");
+    intf.cb.write_pointer  <= 5'h00;         // initialize write pointer
+    intf.cb.read_pointer   <= 5'h1F;         // initialize read pointer
+    intf.cb.load_en        <= 1'b0;          // initialize load control line
+    intf.cb.reset_n       <= 1'b0;          // assert reset_n (active low)
+    repeat (2) @intf.cb ;     // hold in reset for 2 clock cycles
+    intf.cb.reset_n        <= 1'b1;          // deassert reset_n (active low)
+
+}
+
+func gen_transaction(){
+	repeat (3) begin
+	tr.rand_transaction();
+	tr.print_transaction();
+	end
+	vifc.cb.op_A <= tr.op_A;
+	....op_b <= ...op_B
+	....opcode <= ...opcode
+}
+
+class monitor
+new(tb_ifc vifc){
+	func read_reg(){
+		for (int i=0; i<=2; i++) begin
+      // later labs will replace this loop with iterating through a
+      // scoreboard to determine which addresses were written and
+      // the expected values to be read back
+      @intf.cb intf.cb.read_pointer <= i;
+      @intf.cb print_results;
+		end
+	}
+	
+	func print_results(){
+		
+	}
+}
