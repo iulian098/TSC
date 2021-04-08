@@ -16,7 +16,7 @@ module instr_register_test (tb_ifc intf);
 
 		rand opcode_t       opcode;
 		rand operand_t		operand_a, operand_b;
-		rand address_t      write_pointer;
+		address_t      write_pointer;
 		
     constraint const_op_a{
       operand_a >= -15;
@@ -82,6 +82,8 @@ module instr_register_test (tb_ifc intf);
 
     function assign_sig;
 
+        static int temp = 0;
+        tr.write_pointer = temp++;
         vifc.cb.write_pointer  <= tr.write_pointer;
         vifc.cb.operand_a <= tr.operand_a;
         vifc.cb.operand_b <= tr.operand_b;
